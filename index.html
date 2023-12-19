@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chess Game</title>
+  <style>
+    /* Basic styling for the chessboard */
+    .board {
+      display: flex;
+      flex-wrap: wrap;
+      width: 450px; /* Adjust this width as needed */
+    }
+
+    .square {
+      width: 50px; /* Adjust the square size */
+      height: 50px; /* Adjust the square size */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #eee;
+      border: 1px solid #ccc;
+      font-size: 32px;
+    }
+
+    .square.black {
+      background-color: #769656;
+    }
+
+    /* Styling for the chess pieces */
+    .piece {
+      font-family: Arial, sans-serif;
+    }
+
+    .white-piece {
+      color: #f0f0f0;
+    }
+
+    /* Other styles for buttons or elements can go here */
+  </style>
+</head>
+<body>
+  <div id="board" class="board"></div>
+  <button onclick="saveGame()">Save Game</button>
+  <button onclick="restartGame()">Restart Game</button>
+
+  <script>
+    const initialGameState = [
+      ['♜', '♞', '♝', '♛', '♚', '♝', '♞', '♜'],
+      ['♟', '♟', '♟', '♟', '♟', '♟', '♟', '♟'],
+      ['', '', '', '', '', '', '', ''],
+      ['', '', '', '', '', '', '', ''],
+      ['', '', '', '', '', '', '', ''],
+      ['', '', '', '', '', '', '', ''],
+      ['♙', '♙', '♙', '♙', '♙', '♙', '♙', '♙'],
+      ['♖', '♘', '♗', '♕', '♔', '♗', '♘', '♖'],
+    ];
+    let gameState = [...initialGameState];
+
+    let selectedPiece = null; // To store the selected piece for movement
+
+    // Function to render the chessboard based on the game state
+    function renderBoard() {
+      const board = document.getElementById('board');
+      board.innerHTML = ''; // Clear the board before rendering
+
+      // Loop through gameState and create squares with pieces
+      for (let row = 0; row < gameState.length; row++) {
+        for (let col = 0; col < gameState[row].length; col++) {
+          const square = document.createElement('div');
+          square.className = `square ${((row + col) % 2 === 0) ? 'black' : ''}`;
+          square.dataset.row = row;
+          square.dataset.col = col;
+
+          const piece = document.createElement('span');
+          piece.className = 'piece';
+          piece.textContent = gameState[row][col];
+
+          square.appendChild(piece);
+          board.appendChild(square);
+
+          // Add click event listener for piece movement
+          square.addEventListener('click', handleSquareClick);
+        }
+      }
+    }
+
+    // Function to handle square click for piece movement and capturing
+    function handleSquareClick(event) {
+      const clickedSquare = event.currentTarget;
+      const row = parseInt(clickedSquare.dataset.row);
+      const col = parseInt(clickedSquare.dataset.col);
+      const clickedPiece = gameState[row][col];
+
+      if (!selectedPiece && clickedPiece !== '') {
+        selectedPiece = { row, col };
+      } else if (selectedPiece && clickedPiece === '') {
+        movePiece(row, col);
+      } else if (selectedPiece && clickedPiece !== '') {
+        capturePiece(row, col);
+      }
+    }
+
+    // Function to move a piece to an empty square
+    function movePiece(row, col) {
+      const { row: selectedRow, col: selectedCol } = selectedPiece;
+      gameState[row][col] = gameState[selectedRow][selectedCol];
+      gameState[selectedRow][selectedCol] = '';
+      selectedPiece = null;
+      renderBoard();
+    }
+
+    // Function to capture a piece
+    function capturePiece(row, col) {
+      const { row: selectedRow, col: selectedCol } = selectedPiece;
+      gameState[row][col] = gameState[selectedRow][selectedCol];
+      gameState[selectedRow][selectedCol] = '';
+      selectedPiece = null;
+      renderBoard();
+    }
+
+    // Function to save the game state to local storage
+    function saveGame() {
+      localStorage.setItem('chessGame', JSON.stringify(gameState));
+    }
+
+    // Function to restart the game to initial state
+    function restartGame() {
+      gameState = [...initialGameState];
+      renderBoard();
+    }
+
+    // Function to load the saved game state from local storage
+    function loadGame() {
+      const savedGame = localStorage.getItem('chessGame');
+      if (savedGame) {
+        gameState = JSON.parse(savedGame);
+        renderBoard();
+      } else {
+        renderBoard(); // Render an initial board if no saved game is found
+      }
+    }
+
+    // Call loadGame() to load the saved game state on page load
+    loadGame();
+  </script>
+</body>
+</html>
